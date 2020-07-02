@@ -13,15 +13,35 @@ namespace DapperDemo.Web.Controllers
     [ApiController]
     public class DapperController : ControllerBase
     {
-        private readonly DapperClient _client;
+        private readonly DapperClient _oracleClient;
+        private readonly DapperClient _mssqlClient;
         public DapperController(IDapperFactory dapperFactory)
         {
-            _client = dapperFactory.CreateClient("OracleDB");
+            _oracleClient = dapperFactory.CreateClient("OracleDB");
+            _mssqlClient = dapperFactory.CreateClient("MSSqlDB");
         }
-        [HttpGet]
-        public List<dynamic> GetAll()
+        [HttpGet("GetAllUser")]
+        public List<dynamic> GetAllUser()
         {
-            dynamic list = _client.Query<dynamic>(@"select * from testUser");
+            dynamic list = _mssqlClient.Query<dynamic>(@"select * from usertest");
+            return list;
+        }
+        [HttpGet("GetAllPerson")]
+        public List<dynamic> GetAllPerson()
+        {
+            dynamic list = _mssqlClient.Query<dynamic>(@"select * from Person");
+            return list;
+        }
+        [HttpPost("GetByID")]
+        public dynamic GetByID(int id)
+        {
+            dynamic item = _mssqlClient.Query<dynamic>("select * from Person where ID=@id", new { id = id });
+            return item;
+        }
+        [HttpPost("GetByDiscrimitor")]
+        public List<dynamic> GetByDiscrimitor(string discrimitor)
+        {
+            dynamic list = _mssqlClient.Query<dynamic>("select * from Person where Discriminator=@discriminator", new { discriminator = discrimitor });
             return list;
         }
     }

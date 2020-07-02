@@ -33,6 +33,11 @@ namespace DapperDemo.Web
                 m.ConnectionString = Configuration.GetConnectionString("OracleString");
                 m.DbType = DapperLib.Common.DbStoreType.Oracle;
             });
+            services.AddDapper("MSSqlDB", m =>
+            {
+                m.ConnectionString = Configuration.GetConnectionString("MSSqlString");
+                m.DbType = DapperLib.Common.DbStoreType.SqlServer;
+            });
             services.AddControllers();
 
             services.AddSwaggerGen(c =>
