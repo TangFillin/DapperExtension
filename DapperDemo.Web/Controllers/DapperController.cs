@@ -23,7 +23,7 @@ namespace DapperDemo.Web.Controllers
         [HttpGet("GetAllUser")]
         public List<dynamic> GetAllUser()
         {
-            dynamic list = _mssqlClient.Query<dynamic>(@"select * from usertest");
+            dynamic list = _oracleClient.Query<dynamic>(@"select * from usertest");
             return list;
         }
         [HttpGet("GetAllPerson")]
@@ -41,7 +41,7 @@ namespace DapperDemo.Web.Controllers
         [HttpPost("GetByDiscrimitor")]
         public List<dynamic> GetByDiscrimitor(string discrimitor)
         {
-            dynamic list = _client.Query<dynamic>(@"select * from testUser");
+            dynamic list = _mssqlClient.Query<dynamic>("select * from Person where Discriminator=@discriminator", new { discriminator = discrimitor });
             return list;
         }
         /// <summary>
