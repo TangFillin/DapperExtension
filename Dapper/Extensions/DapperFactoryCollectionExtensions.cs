@@ -19,8 +19,9 @@ namespace DapperLib.Extensions
             //services.AddLogging();
             services.AddOptions();
 
-            services.AddSingleton<DefaultDapperFactory>();
-            services.TryAddSingleton<IDapperFactory>(serviceProvider => serviceProvider.GetRequiredService<DefaultDapperFactory>());
+            //services.AddSingleton<DefaultDapperFactory>();
+            //services.TryAddSingleton<IDapperFactory>(serviceProvider => serviceProvider.GetRequiredService<DefaultDapperFactory>());
+            services.AddSingleton<IDapperFactory, DefaultDapperFactory>();
 
             return services;
         }

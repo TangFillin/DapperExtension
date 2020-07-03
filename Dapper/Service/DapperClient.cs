@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using DapperLib.Common;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace DapperLib.Service
@@ -47,6 +49,7 @@ namespace DapperLib.Service
                 return _connection;
             }
         }
+        #region SQL
         #region 查
 
         /// <summary>
@@ -54,7 +57,7 @@ namespace DapperLib.Service
         /// </summary>
         /// <param name="strSql">sql语句</param>
         /// <returns></returns>
-        public virtual List<T> Query<T>(string strSql)
+        public virtual List<T> SQuery<T>(string strSql)
         {
             using (IDbConnection conn = Connection)
             {
@@ -68,7 +71,7 @@ namespace DapperLib.Service
         /// <param name="strSql">SQL语句</param>
         /// <param name="obj">参数model</param>
         /// <returns></returns>
-        public virtual List<T> Query<T>(string strSql, object param)
+        public virtual List<T> SQuery<T>(string strSql, object param)
         {
             using (IDbConnection conn = Connection)
             {
@@ -81,7 +84,7 @@ namespace DapperLib.Service
         /// </summary>
         /// <param name="strSql">SQL语句</param>
         /// <returns></returns>
-        public virtual T QueryFirst<T>(string strSql)
+        public virtual T SQueryFirst<T>(string strSql)
         {
             using (IDbConnection conn = Connection)
             {
@@ -94,7 +97,7 @@ namespace DapperLib.Service
         /// </summary>
         /// <param name="strSql">SQL语句</param>
         /// <returns></returns>
-        public virtual async Task<T> QueryFirstAsync<T>(string strSql)
+        public virtual async Task<T> SQueryFirstAsync<T>(string strSql)
         {
             using (IDbConnection conn = Connection)
             {
@@ -109,7 +112,7 @@ namespace DapperLib.Service
         /// <param name="strSql">SQL语句</param>
         /// <param name="obj">参数model</param>
         /// <returns></returns>
-        public virtual T QueryFirst<T>(string strSql, object param)
+        public virtual T SQueryFirst<T>(string strSql, object param)
         {
             using (IDbConnection conn = Connection)
             {
@@ -117,15 +120,16 @@ namespace DapperLib.Service
             }
         }
         #endregion
-
+        
         /// <summary>
         /// 执行SQL
         /// </summary>
         /// <param name="strSql">SQL语句</param>
         /// <param name="param">参数</param>
         /// <returns>0成功，-1执行失败</returns>
-        public virtual int Execute(string strSql, object param)
+        public virtual int SExecute(string strSql, object param)
         {
+
             using (IDbConnection conn = Connection)
             {
                 try
@@ -138,13 +142,32 @@ namespace DapperLib.Service
                 }
             }
         }
-
+        public virtual async Task<int> SExecuteAsync<T>(string strSql, T param)
+        {
+            Type t = typeof(T);
+            foreach(PropertyInfo p in t.GetProperties())
+            {
+                strSql = strSql.Replace("@" + p.Name, $"{p.GetValue(param)}",StringComparison.OrdinalIgnoreCase);
+                
+            }
+            using (IDbConnection conn = Connection)
+            {
+                try
+                {
+                    return await conn.ExecuteAsync(strSql, param) > 0 ? 0 : -1;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+        }
         /// <summary>
         /// 执行无参存储过程
         /// </summary>
         /// <param name="strProcedure">过程名</param>
         /// <returns></returns>
-        public virtual int ExecuteStoredProcedure(string strProcedure)
+        public virtual int SExecuteStoredProcedure(string strProcedure)
         {
             using (IDbConnection conn = Connection)
             {
@@ -165,7 +188,7 @@ namespace DapperLib.Service
         /// <param name="strProcedure">过程名</param>
         /// <param name="param">参数</param>
         /// <returns></returns>
-        public virtual int ExecuteStoredProcedure(string strProcedure, object param)
+        public virtual int SExecuteStoredProcedure(string strProcedure, object param)
         {
             using (IDbConnection conn = Connection)
             {
@@ -179,6 +202,27 @@ namespace DapperLib.Service
                 }
             }
         }
+        #endregion
+        #region Entity
+        public async Task<T> EGetByIdAsync<T>(int id) where T:class
+        {
+            using (IDbConnection conn = Connection)
+            {
+                var s=await conn.GetAsync<T>(id);
+                return s;
+            }
+        }
+        #region 新增
+        public async Task<int> EAddReturnId<T>(T t) where T : class
+        {
+            using (IDbConnection conn = Connection)
+            {
+                var id = await conn.InsertAsync(t);
+                return id;
+            }
+        }
+        #endregion
+        #endregion
 
 
     }
